@@ -1,0 +1,179 @@
+@model IEnumerable<StudentAttendanceSystem.Models.Attendance>
+
+@{
+    ViewData["Title"] = "Student Attendance Report";
+}
+
+<h2><i class="bi bi-person-badge-fill"></i> Student Attendance Report</h2>
+<hr />
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="StudentReport" method="get">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Select Student *</label>
+                    <select name="studentId" class="form-select" asp-items="ViewBag.Students" required>
+                        <option value="">-- Select Student --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Generate
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (ViewBag.Student != null)
+{
+    var student = ViewBag.Student as Student;
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Student Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> @student.FullName</p>
+                    <p><strong>ID Number:</strong> <span class="badge bg-secondary">@student.StudentIdNumber</span></p>
+                    <p><strong>Class:</strong> @student.Class?.FullClassName</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Report Period:</strong> @ViewBag.StartDate?.ToString("MMM dd, yyyy") to @ViewBag.EndDate?.ToString("MMM dd, yyyy")</p>
+                    <p><strong>Email:</strong> @student.Email</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">@ViewBag.TotalDays</h3>
+                    <p class="mb-0">Total Days</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">@ViewBag.PresentDays</h3>
+                    <p class="mb-0">Present</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-danger">@ViewBag.AbsentDays</h3>
+                    <p class="mb-0">Absent</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">@ViewBag.LateDays</h3>
+                    <p class="mb-0">Late</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">@ViewBag.AttendancePercentage%</h3>
+                    <p class="mb-0">Attendance Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6>Attendance Progress</h6>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: @ViewBag.AttendancePercentage%">
+                    @ViewBag.AttendancePercentage% Attendance
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Detailed Attendance Records</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Day</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                                <th>Marked By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@item.AttendanceDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@item.AttendanceDate.ToString("dddd")</td>
+                                    <td>
+                                        @switch (item.Status)
+                                        {
+                                            case AttendanceStatus.Present:
+                                                <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Present</span>
+                                                break;
+                                            case AttendanceStatus.Absent:
+                                                <span class="badge bg-danger"><i class="bi bi-x-circle-fill"></i> Absent</span>
+                                                break;
+                                            case AttendanceStatus.Late:
+                                                <span class="badge bg-warning"><i class="bi bi-clock-fill"></i> Late</span>
+                                                break;
+                                            case AttendanceStatus.Excused:
+                                                <span class="badge bg-info"><i class="bi bi-exclamation-circle-fill"></i> Excused</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>@item.Remarks</td>
+                                    <td>@item.MarkedBy</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4">
+                    <button class="btn btn-success" onclick="window.print()">
+                        <i class="bi bi-printer-fill"></i> Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle-fill"></i> No attendance records found for the selected period.
+        </div>
+    }
+}

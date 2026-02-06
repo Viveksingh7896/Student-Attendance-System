@@ -1,0 +1,157 @@
+@model StudentAttendanceSystem.Models.ViewModels.MarkAttendanceViewModel
+
+@{
+    ViewData["Title"] = "Mark Attendance";
+}
+
+<h2><i class="bi bi-clipboard-check-fill"></i> Mark Attendance</h2>
+<hr />
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="MarkAttendance" method="get">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Select Class</label>
+                    <select name="classId" class="form-select" asp-items="ViewBag.Classes" required>
+                        <option value="">-- Select Class --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Attendance Date</label>
+                    <input type="date" name="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Load Students
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Students != null && Model.Students.Any())
+{
+    <form asp-action="MarkAttendance" method="post">
+        <input type="hidden" asp-for="ClassId" />
+        <input type="hidden" asp-for="AttendanceDate" />
+        <input type="hidden" asp-for="ClassName" />
+
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    Marking Attendance for <strong>@Model.ClassName</strong> - @Model.AttendanceDate.ToString("dddd, MMMM dd, yyyy")
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-success" onclick="markAllPresent()">
+                        <i class="bi bi-check-all"></i> Mark All Present
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="markAllAbsent()">
+                        <i class="bi bi-x-circle"></i> Mark All Absent
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>ID Number</th>
+                                <th>Student Name</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Students.Count; i++)
+                            {
+                                <tr>
+                                    <td>@(i + 1)</td>
+                                    <td>
+                                        <span class="badge bg-secondary">@Model.Students[i].StudentIdNumber</span>
+                                        <input type="hidden" asp-for="Students[i].StudentId" />
+                                        <input type="hidden" asp-for="Students[i].StudentName" />
+                                        <input type="hidden" asp-for="Students[i].StudentIdNumber" />
+                                    </td>
+                                    <td>@Model.Students[i].StudentName</td>
+                                    <td>
+                                        <select asp-for="Students[i].Status" class="form-select form-select-sm status-select">
+                                            <option value="0">Present</option>
+                                            <option value="1">Absent</option>
+                                            <option value="2">Late</option>
+                                            <option value="3">Excused</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input asp-for="Students[i].Remarks" class="form-control form-control-sm" placeholder="Optional remarks..." />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle-fill"></i> Save Attendance
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @section Scripts {
+        <script>
+            function markAllPresent() {
+                document.querySelectorAll('.status-select').forEach(select => {
+                    select.value = '0'; // Present
+                });
+            }
+
+            function markAllAbsent() {
+                document.querySelectorAll('.status-select').forEach(select => {
+                    select.value = '1'; // Absent
+                });
+            }
+
+            // Add color coding to status selects
+            document.querySelectorAll('.status-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    updateSelectColor(this);
+                });
+                updateSelectColor(select);
+            });
+
+            function updateSelectColor(select) {
+                select.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'text-white');
+                switch(select.value) {
+                    case '0': // Present
+                        select.classList.add('bg-success', 'text-white');
+                        break;
+                    case '1': // Absent
+                        select.classList.add('bg-danger', 'text-white');
+                        break;
+                    case '2': // Late
+                        select.classList.add('bg-warning');
+                        break;
+                    case '3': // Excused
+                        select.classList.add('bg-info', 'text-white');
+                        break;
+                }
+            }
+        </script>
+    }
+}
+else if (Model.ClassId > 0)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle-fill"></i> No active students found in this class.
+    </div>
+}

@@ -1,0 +1,125 @@
+@model IEnumerable<StudentAttendanceSystem.Models.ViewModels.AttendanceReportViewModel>
+
+@{
+    ViewData["Title"] = "Class Attendance Report";
+}
+
+<h2><i class="bi bi-file-earmark-bar-graph-fill"></i> Class Attendance Report</h2>
+<hr />
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="ClassReport" method="get">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Select Class *</label>
+                    <select name="classId" class="form-select" asp-items="ViewBag.Classes" required>
+                        <option value="">-- Select Class --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="startDate" class="form-control" value="@ViewBag.StartDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="endDate" class="form-control" value="@ViewBag.EndDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Generate
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                Report Period: @ViewBag.StartDate?.ToString("MMM dd, yyyy") to @ViewBag.EndDate?.ToString("MMM dd, yyyy")
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Number</th>
+                            <th>Student Name</th>
+                            <th>Total Days</th>
+                            <th>Present</th>
+                            <th>Absent</th>
+                            <th>Late</th>
+                            <th>Excused</th>
+                            <th>Attendance %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@item.StudentIdNumber</span></td>
+                                <td>@item.StudentName</td>
+                                <td><strong>@item.TotalDays</strong></td>
+                                <td><span class="badge bg-success">@item.PresentDays</span></td>
+                                <td><span class="badge bg-danger">@item.AbsentDays</span></td>
+                                <td><span class="badge bg-warning">@item.LateDays</span></td>
+                                <td><span class="badge bg-info">@item.ExcusedDays</span></td>
+                                <td>
+                                    <strong class="@(item.AttendancePercentage >= 75 ? "text-success" : item.AttendancePercentage >= 50 ? "text-warning" : "text-danger")">
+                                        @item.AttendancePercentage%
+                                    </strong>
+                                </td>
+                                <td>
+                                    @if (item.AttendancePercentage >= 75)
+                                    {
+                                        <span class="badge bg-success">Good</span>
+                                    }
+                                    else if (item.AttendancePercentage >= 50)
+                                    {
+                                        <span class="badge bg-warning">Average</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Poor</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <th colspan="2">Class Average</th>
+                            <th>@Model.Average(m => m.TotalDays).ToString("0.0")</th>
+                            <th>@Model.Average(m => m.PresentDays).ToString("0.0")</th>
+                            <th>@Model.Average(m => m.AbsentDays).ToString("0.0")</th>
+                            <th>@Model.Average(m => m.LateDays).ToString("0.0")</th>
+                            <th>@Model.Average(m => m.ExcusedDays).ToString("0.0")</th>
+                            <th colspan="2">
+                                <strong>@Model.Average(m => m.AttendancePercentage).ToString("0.00")%</strong>
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="mt-4">
+                <button class="btn btn-success" onclick="window.print()">
+                    <i class="bi bi-printer-fill"></i> Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+}
+else if (ViewBag.SelectedClassId != null)
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle-fill"></i> No attendance data found for the selected period.
+    </div>
+}

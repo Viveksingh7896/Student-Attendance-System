@@ -1,5 +1,3 @@
-# Student-Attendance-System
-Basic ASP.NET MVC project for managing student attendance
 # Student Attendance System
 
 ASP.NET Core MVC application for tracking and managing student attendance records.
